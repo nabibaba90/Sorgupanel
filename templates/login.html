@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Panelimize Giriş Sayfası ;)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root{
+    --bg:#0b0f1a;
+    --card:#0d1326cc;
+    --neon:#00e6ff;
+    --neon-2:#7c3aed;
+    --txt:#cbd5e1;
+    --error:#ff3b6b;
+    --ok:#22c55e;
+  }
+  html,body{height:100%}
+  body{
+    background: radial-gradient(1200px 700px at 10% -10%, #0b1b33 0%, rgba(11,27,51,0) 60%),
+                radial-gradient(900px 600px at 110% 10%, #1b0f33 0%, rgba(27,15,51,0) 55%),
+                radial-gradient(1200px 800px at 50% 120%, #00131f 0%, rgba(0,19,31,0) 60%),
+                var(--bg);
+    color: var(--txt);
+    font-family: 'Inter',system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    overflow: hidden;
+  }
+
+  /* arka plan ızgara + parıldama */
+  .grid-bg{
+    position: fixed; inset:0; pointer-events:none; opacity:.35;
+    background-image:
+      linear-gradient(to right, rgba(0,230,255,.08) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(124,58,237,.08) 1px, transparent 1px);
+    background-size: 40px 40px;
+    mask-image: radial-gradient(circle at 50% 50%, black 30%, transparent 80%);
+  }
+  .glow-blob{
+    position: fixed; filter: blur(60px); opacity:.6; pointer-events:none;
+    mix-blend-mode: screen; animation: float 12s ease-in-out infinite;
+  }
+  .glow-1{ width:480px; height:480px; background: radial-gradient(circle, var(--neon), transparent 60%); top:-80px; left:-60px; }
+  .glow-2{ width:520px; height:520px; background: radial-gradient(circle, var(--neon-2), transparent 60%); bottom:-120px; right:-80px; animation-delay: -3s;}
+  @keyframes float{
+    0%,100%{ transform: translateY(0) translateX(0) scale(1); }
+    50%{ transform: translateY(20px) translateX(10px) scale(1.03); }
+  }
+
+  /* kart */
+  .card{
+    position: relative;
+    background: var(--card);
+    backdrop-filter: blur(12px);
+    border-radius: 24px;
+    box-shadow:
+      0 0 0 1px rgba(0,230,255,.28),
+      0 20px 60px rgba(0,0,0,.5),
+      inset 0 0 40px rgba(124,58,237,.12);
+    overflow: hidden;
+  }
+  .card:before{
+    content:""; position:absolute; inset:-2px;
+    background: conic-gradient(from 180deg at 50% 50%, rgba(0,230,255,.35), rgba(124,58,237,.35), rgba(0,230,255,.35));
+    filter: blur(24px); opacity:.35; z-index:0;
+  }
+  .card-inner{ position: relative; z-index:1; }
+
+  /* neon başlık */
+  .brand{
+    font-family:'Orbitron', system-ui; letter-spacing:.06em;
+    text-shadow:
+      0 0 10px rgba(0,230,255,.85),
+      0 0 24px rgba(124,58,237,.65),
+      0 0 42px rgba(0,230,255,.35);
+  }
+  .neon-line{
+    height:2px; background: linear-gradient(90deg, transparent, var(--neon), var(--neon-2), transparent);
+    box-shadow: 0 0 18px rgba(0,230,255,.8);
+  }
+
+  /* inputlar */
+  .inp{
+    background: rgba(15,23,42,.65);
+    border: 1px solid rgba(0,230,255,.28);
+    color: var(--txt);
+    border-radius: 14px;
+    padding: 14px 14px 14px 44px;
+    outline: none;
+    transition: .25s;
+  }
+  .inp:focus{
+    border-color: var(--neon);
+    box-shadow: 0 0 0 4px rgba(0,230,255,.15), 0 0 24px rgba(124,58,237,.25) inset;
+  }
+  .iconbox{
+    position:absolute; left:12px; top:50%; transform:translateY(-50%);
+    opacity:.75;
+  }
+
+  /* butonlar */
+  .btn{
+    border-radius: 14px;
+    padding: 14px 18px;
+    font-weight:700;
+    letter-spacing:.02em;
+    transition: transform .08s ease, box-shadow .2s ease, filter .2s ease;
+    box-shadow: 0 10px 30px rgba(124,58,237,.25);
+  }
+  .btn:active{ transform: translateY(1px) scale(.99); }
+
+  .btn-vip{
+    background: linear-gradient(135deg, var(--neon) 0%, #35a9ff 40%, var(--neon-2) 100%);
+    color: #06121a;
+    text-shadow: 0 1px rgba(255,255,255,.25);
+    box-shadow:
+      0 0 18px rgba(0,230,255,.6),
+      0 0 36px rgba(124,58,237,.45),
+      0 18px 50px rgba(0,230,255,.25);
+  }
+  .btn-vip:hover{ filter: brightness(1.08) saturate(1.02); }
+
+  .btn-free{
+    background: linear-gradient(135deg, #16a34a 0%, #22c55e 60%, #86efac 100%);
+    color: #04130a;
+    box-shadow:
+      0 0 14px rgba(34,197,94,.6),
+      0 14px 40px rgba(34,197,94,.25);
+  }
+  .btn-free:hover{ filter: brightness(1.05) saturate(1.05); }
+
+  /* badge */
+  .badge-vip{
+    border:1px solid rgba(0,230,255,.4);
+    background: linear-gradient(180deg, rgba(0,230,255,.08), rgba(124,58,237,.08));
+    box-shadow: inset 0 0 24px rgba(124,58,237,.18);
+  }
+
+  /* toast */
+  .toast{
+    position: fixed; top: 20px; left:50%; transform: translateX(-50%);
+    padding: 12px 16px; border-radius: 12px; backdrop-filter: blur(8px);
+    border:1px solid rgba(255,255,255,.12); color:#e2e8f0;
+    background: rgba(2,6,23,.7); display:none; z-index:50; font-weight:600;
+  }
+  .toast.ok{ border-color: rgba(34,197,94,.5); box-shadow: 0 0 18px rgba(34,197,94,.35); }
+  .toast.err{ border-color: rgba(255,59,107,.5); box-shadow: 0 0 18px rgba(255,59,107,.35); }
+</style>
+</head>
+<body class="min-h-screen w-full flex items-center justify-center p-6">
+  <!-- arka plan efektleri -->
+  <div class="grid-bg"></div>
+  <div class="glow-blob glow-1"></div>
+  <div class="glow-blob glow-2"></div>
+
+  <!-- toast -->
+  <div id="toast" class="toast">Mesaj</div>
+
+  <!-- kart -->
+  <div class="card w-full max-w-2xl">
+    <div class="card-inner p-8 md:p-10">
+      <div class="flex items-center justify-between gap-4">
+        <h1 class="brand text-2xl md:text-3xl font-bold">
+          Panel giriş sayfası ;)
+        </h1>
+        <span class="badge-vip px-3 py-1 rounded-xl text-sm md:text-base">
+          <span class="text-cyan-300">NEON</span> <span class="text-violet-300">VIP</span>
+        </span>
+      </div>
+
+      <div class="neon-line my-6"></div>
+
+      <!-- VIP form -->
+      <div class="space-y-5">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="relative">
+            <span class="iconbox">🔱</span>
+            <input id="username" class="inp w-full" placeholder="VIP Kullanıcı Adı" autocomplete="username" />
+          </div>
+          <div class="relative">
+            <span class="iconbox">🗝️</span>
+            <input id="password" type="password" class="inp w-full" placeholder="VIP Şifre" autocomplete="current-password" />
+          </div>
+        </div>
+
+        <button id="vipBtn" class="btn btn-vip w-full text-lg">
+          VIP Giriş Yap
+        </button>
+
+        <div class="flex items-center gap-3 my-2">
+          <div class="h-px flex-1 bg-white/10"></div>
+          <span class="text-white/70 text-sm">veya</span>
+          <div class="h-px flex-1 bg-white/10"></div>
+        </div>
+
+        <!-- FREE buton -->
+        <button id="freeBtn" class="btn btn-free w-full text-lg">
+          ENY Ücretsiz Giriş Yap
+        </button>
+
+        <p class="text-center text-sm text-white/60 mt-2">
+          VIP ayrıcalıklar için <a href="/abonelik.html" class="text-cyan-300 hover:underline">abonelik</a> sayfasına göz at.
+        </p>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const toastEl = document.getElementById('toast');
+  function showToast(msg, type='ok'){
+    toastEl.textContent = msg;
+    toastEl.classList.remove('ok','err');
+    toastEl.classList.add(type === 'ok' ? 'ok' : 'err');
+    toastEl.style.display='block';
+    clearTimeout(window.__toastTimer);
+    window.__toastTimer = setTimeout(()=> toastEl.style.display='none', 2200);
+  }
+
+  function setLoading(btn, loading){
+    if(loading){
+      btn.dataset._txt = btn.textContent;
+      btn.textContent = 'İşleniyor...';
+      btn.style.opacity = .8; btn.disabled = true;
+    }else{
+      btn.textContent = btn.dataset._txt || btn.textContent;
+      btn.style.opacity = 1; btn.disabled = false;
+    }
+  }
+
+  async function vipLogin(){
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    const btn = document.getElementById('vipBtn');
+
+    if(!username || !password){
+      showToast('Kullanıcı adı ve şifre gerekli.', 'err');
+      return;
+    }
+    try{
+      setLoading(btn, true);
+      const res = await fetch('/api/login', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        credentials:'same-origin',
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      if(!res.ok || !data.success){
+        showToast(data.message || 'Giriş başarısız.', 'err');
+        return;
+      }
+      showToast('VIP giriş başarılı! Yönlendiriliyor…','ok');
+      setTimeout(()=> { window.location.href = '/'; }, 650);
+    }catch(e){
+      showToast('Sunucuya ulaşılamadı.', 'err');
+    }finally{
+      setLoading(btn, false);
+    }
+  }
+
+  async function freeLogin(){
+    const btn = document.getElementById('freeBtn');
+    try{
+      setLoading(btn, true);
+      const res = await fetch('/api/login', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        credentials:'same-origin',
+        body: JSON.stringify({ free: true })
+      });
+      const data = await res.json();
+      if(!res.ok || !data.success){
+        showToast(data.message || 'Ücretsiz giriş başarısız.', 'err');
+        return;
+      }
+      showToast('Ücretsiz giriş başarılı! Yönlendiriliyor…','ok');
+      setTimeout(()=> { window.location.href = '/'; }, 650);
+    }catch(e){
+      showToast('Sunucuya ulaşılamadı.', 'err');
+    }finally{
+      setLoading(btn, false);
+    }
+  }
+
+  document.getElementById('vipBtn').addEventListener('click', vipLogin);
+  document.getElementById('freeBtn').addEventListener('click', freeLogin);
+
+  // Enter ile VIP login
+  ['username','password'].forEach(id=>{
+    document.getElementById(id).addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter'){ vipLogin(); }
+    });
+  });
+</script>
+</body>
+</html>
