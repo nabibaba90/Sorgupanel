@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kullanıcı Paneli</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+
+  /* Gövde arka plan ve temel renkler */
+  body {
+    background: #151520;
+    color: #c5c7d6;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow-x: hidden;
+    height: 100vh;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  /* Arka plan resmi */
+  .background-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('https://media4.giphy.com/media/v1.Y2lkPTZjMDliOTUyam4zc2pkYjMxdmFvZXJjaHhodnUxcTYwNnZ2MzhqbXZ4OXlqNjVkdCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/oFvFtrhrmIFFe/giphy.gif');
+    background-size: cover;
+    background-position: center;
+    z-index: -1; /* Arka planda kalması için */
+  }
+
+  /* Hoşgeldin yazısı - RENK VE NEON EFEKTI BURADA DEĞİŞTİRİLDİ */
+  .welcome-text {
+    font-size: 36px;
+    font-weight: bold;
+    color: #ff4dff; /* neon pembe / menekşe tonda */
+    text-shadow:
+      0 0 6px rgba(255, 77, 255, 0.95),
+      0 0 14px rgba(255, 77, 255, 0.8),
+      0 0 28px rgba(142, 45, 255, 0.6),
+      0 6px 30px rgba(20, 0, 40, 0.45);
+    text-align: center;
+    line-height: 1.2;
+    white-space: pre-line;
+  }
+
+  /* --- EK: Cam kutu için (istediğin beyaz cam arka plan) --- */
+  .welcome-wrap {
+    position: relative;
+    display: inline-block;
+    padding: 12px 18px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    z-index: 10;
+  }
+  /* cam/glass kutu arka plan (yarı saydam beyaz + blur) */
+  .welcome-wrap .glass-box {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.12); /* hafif beyaz */
+    backdrop-filter: blur(8px) saturate(120%);
+    -webkit-backdrop-filter: blur(8px) saturate(120%);
+    border: 1px solid rgba(255,255,255,0.18);
+    box-shadow: 0 8px 20px rgba(2,6,23,0.45);
+    z-index: -1; /* yazının arkasında kalsın */
+    pointer-events: none;
+  }
+  /* küçük ekranlarda daha ince görünmesi için font küçültme */
+  @media (max-width:420px){
+    .welcome-text { font-size: 28px; }
+    .welcome-wrap { padding: 10px 14px; }
+  }
+  /* alt bilgi satırı (tarih/saat/greeting) */
+  #__vip_submsg { display:block; margin-top:8px; font-size:13px; color:#d9f7ff; font-weight:700; }
+  /* --- EK SONU --- */
+
+  /* Menü ana kapsayıcı */
+  #sidebar {
+    width: 320px;
+    background: #1a1a2e;
+    border-right: 2px solid #00e6ff;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #00e6ff transparent;
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    display: none; /* Başlangıçta gizli */
+    z-index: 1000;
+  }
+  #sidebar.active {
+    display: flex; /* Açıldığında göster */
+  }
+
+  /* Üst Kullanıcı bilgisi ve foto */
+  #user-panel {
+    border-bottom: 2px solid #00e6ff;
+    padding: 20px 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+  #user-panel img {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    background: linear-gradient(90deg, #0ff, #08f);
+    padding: 2px;
+    box-sizing: content-box;
+  }
+  #user-panel .user-info {
+    display: flex;
+    flex-direction: column;
+  }
+  #user-panel .username {
+    font-weight: 700;
+    font-size: 18px;
+    color: #fff;
+  }
+  #user-panel .membership {
+    font-size: 14px;
+    color: #00e6ff;
+    cursor: pointer;
+    user-select: none;
+    font-weight: 600;
+  }
+  #user-panel .membership:hover {
+    text-decoration: underline;
+  }
+
+  /* Menü içeriği */
+  nav {
+    flex-grow: 1;
+    padding: 15px 0;
+  }
+
+  /* Ana linkler */
+  .menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 30px;
+    font-weight: 500;
+    font-size: 16px;
+    color: #9ca5b3;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.4s, color 0.4s;
+    position: relative;
+  }
+  .menu-item.active,
+  .menu-item:hover {
+    background: #252740;
+    color: #00e6ff;
+  }
+  .menu-item.active > i,
+  .menu-item:hover > i {
+    color: #00e6ff;
+  }
+
+  /* İkonlar */
+  .menu-item i {
+    width: 20px;
+    min-width: 20px;
+    text-align: center;
+    color: #6b7280;
+    transition: color 0.3s;
+  }
+
+  /* Ok işareti sağda */
+  .menu-item .arrow {
+    margin-left: auto;
+    font-size: 14px;
+    color: #555971;
+    transition: transform 0.3s ease;
+    user-select: none;
+  }
+  .menu-item.expanded .arrow {
+    transform: rotate(90deg);
+  }
+
+  /* Bölüm başlıkları */
+  .section-title {
+    text-transform: uppercase;
+    font-weight: 600;
+    color: #6b7280;
+    font-size: 13px;
+    letter-spacing: 1.5px;
+    margin: 15px 30px 7px 30px;
+  }
+
+  /* Alt menü - dropdown */
+  .submenu {
+    background: #16162b;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease, padding 0.3s ease;
+  }
+  .submenu.open {
+    max-height: 500px; /* yeterli büyüklük */
+    padding-left: 35px;
+  }
+  .submenu li {
+    list-style: none;
+  }
+  .submenu li a {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 30px;
+    font-weight: 400;
+    font-size: 15px;
+    color: #bfc6cb;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .submenu li a:hover {
+    background-color: #303155;
+    color: #00e6ff;
+  }
+
+  /* Etiket (badge) stilleri */
+  .badge {
+    font-weight: 700;
+    font-size: 11px;
+    padding: 2px 7px;
+    border-radius: 6px;
+    user-select: none;
+    white-space: nowrap;
+  }
+  .badge.free {
+    background-color: #22c55e;
+    color: white;
+  }
+  .badge.premium {
+    background-color: #fdc018;
+    color: #111;
+    font-weight: 600;
+  }
+  .badge.year {
+    background: linear-gradient(110deg, #06b6d4, #0ea5e9);
+    color: white;
+  }
+  .badge.vodafone {
+    background-color: #0084ff;
+    color: white;
+    font-weight: 600;
+    padding: 2px 9px;
+    font-size: 12px;
+ }
+
+  /* Premium Çözümler alt başlığı sarı neon efektiyle */
+  .premium-section {
+    margin: 20px 30px 10px 30px;
+    font-weight: 700;
+    font-size: 14px;
+    color: #ffd700;
+    letter-spacing: 0.08em;
+    text-shadow:
+      0 0 5px #ffd700,
+      0 0 10px #ffd700,
+      0 0 20px #fbf379,
+      0 0 30px #fbf379;
+  }
+
+  /* Scrollbar */
+  #sidebar {
+    scrollbar-width: thin;
+    scrollbar-color: #00e6ff #1a1a2e;
+  }
+
+  /* Menü Butonu */
+  #menu-button {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: #00e6ff;
+    color: #151520;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s;
+    z-index: 1000;
+  }
+  #menu-button:hover {
+    background: #00b3cc;
+  }
+
+  /* Market Butonu */
+  #market-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: #00e6ff;
+    color: #151520;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s;
+    z-index: 1000;
+  }
+  #market-button:hover {
+    background: #00b3cc;
+  }
+
+  /* Menü içi X butonu */
+  #menu-close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: transparent;
+    color: #fff;
+    border: 0;
+    font-size: 18px;
+    cursor: pointer;
+    z-index: 1100;
+    padding: 6px 8px;
+  }
+  .menu-locked { opacity: 0.45; pointer-events: none; filter: grayscale(0.12); }
+
+</style>
+</head>
+<body>
+  <div class="background-image"></div>
+
+  <!-- Değişiklik: welcome-text içeriği senin istediğin 3 satır + alt satırda gün/saat/selamlama -->
+  <div class="welcome-wrap" aria-hidden="false">
+    <div class="glass-box" aria-hidden="true"></div>
+    <div class="welcome-text" id="__vip_welcome">
+      EZEL NABI VE EYMENIN
+      Sorgu sitesine hos geldin bra
+      Menudeki 50sorgu seni bekliyo tadini cikar
+    </div>
+    <span id="__vip_submsg" aria-hidden="false"></span>
+  </div>
+
+  <!-- Menü Butonu -->
+  <button id="menu-button" onclick="toggleMenu()">Menü</button>
+
+  <!-- Market Butonu -->
+  <button id="market-button" onclick="window.location.href='abonelik.html'">Market</button>
+
+  <!-- Menü -->
+  <aside id="sidebar" aria-label="Kullanıcı Paneli Menüsü">
+    <button id="menu-close-btn" title="Kapat">✕</button>
+    <div id="user-panel" role="region" aria-label="Kullanıcı Bilgileri">
+      <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/2220b27b-c04f-48bc-9a37-8ebfbd779b57.png" alt="Profil fotoğrafı, turuncu ve siyah temalı resim" onerror="this.onerror=null;this.src='https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/fa4c8db6-4e46-4d7a-9956-7ec0db516d13.png';" />
+      <div class="user-info">
+        <div class="username">keskeokizgitmeseydi🥲</div>
+        <div class="membership" tabindex="0">♡ Ücretsiz Üyelik</div>
+      </div>
+    </div>
+
+
+    <nav role="navigation" aria-label="Ana menü">
+      <ul>
+        <li>
+          <a href="#" class="menu-item active" tabindex="0" aria-current="page">
+            <i class="fas fa-home" aria-hidden="true"></i> Ana Sayfa
+          </a>
+        </li>
+        <li>
+          <a href="#" class="menu-item" tabindex="0">
+            <i class="fas fa-trophy" aria-hidden="true"></i> Kullanıcı Sıralaması
+          </a>
+        </li>
+
+        <li class="section-title" aria-hidden="true">MARKET</li>
+        <li>
+          <a href="#" class="menu-item" tabindex="0">
+            <i class="fas fa-store" aria-hidden="true"></i> Mağaza İşlemleri
+            <span class="arrow" aria-hidden="true">▶</span>
+
+          </a>
+        </li>
+
+        <li class="section-title" aria-hidden="true">ÜCRETSİZ ÇÖZÜMLER</li>
+
+        <li>
+          <a href="#" class="menu-item" tabindex="0" aria-expanded="false" aria-controls="submenu-bilgi-sistem" id="btn-bilgi-sistem">
+            <i class="fas fa-database" aria-hidden="true"></i> Bilgi Sistem <span class="arrow">▶</span>
+          </a>
+          <ul class="submenu" id="submenu-bilgi-sistem" aria-labelledby="btn-bilgi-sistem">
+            <li><a href="#" class="api-call" data-api="ad_soyad">Ad Soyad <span class="badge free">Free</span></a></li>
+            <li><a href="#" class="api-call" data-api="tc_pro_sorgulama">Tc Sorgu <span class="badge free" aria-label="Ücretsiz">Free</span></a></li>
+          <li><a href="#" class="api-call" data-api="telegram_sorgu">Telegram Bilgi <span class="badge year" aria-label="2024 Yılı">2024</span></a></li>
+          </ul>
+        </li>
+
+        <li>
+          <a href="#" class="menu-item" tabindex="0" aria-expanded="false" aria-controls="submenu-araclar" id="btn-araclar">
+            <i class="fas fa-tools" aria-hidden="true"></i> Araçlar <span class="arrow">▶</span>
+          </a>
+          <ul class="submenu" id="submenu-araclar" aria-labelledby="btn-araclar">
+            <li><a href="#">Telegram Bilgi <span class="badge year">2024</span></a></li>
+          </ul>
+        </li>
+
+        <li class="premium-section" aria-hidden="true">PREMİUM ÇÖZÜMLER</li>
+
+        <li>
+          <a href="#" class="menu-item" tabindex="0" aria-expanded="false" aria-controls="submenu-ek-araclar" id="btn-ek-araclar">
+            <i class="fas fa-star" aria-hidden="true"></i> Ek Araçlar <span class="arrow">▶</span>
+          </a>
+          <ul class="submenu" id="submenu-ek-araclar" aria-labelledby="btn-ek-araclar">
+            <li><a href="#" class="api-call" data-api="e-kurs">E-Kurs Sorgulama <span class="badge premium">Premium</span></a></li>
+            <li><a href="#" class="api-call" data-api="tc_pro_sorgulama">Tc Pro Sorgulama <span class="badge premium">Premium</span></a></li>
+            <li><a href="#" class="api-call" data-api"ehliyet">Araba/Borc Sorgulama <span class="badge premium">Premium</span></a></li>
+            <li><a href="#" class="api-call" data-api"ip">İP'den Konum Bilgi <span class="badge premium">Premium</span></a></li>
+            <li><a href="#" class="api-call" data-api"ada_parsel">Ada Parsel Sorgulama <span class="badge premium">Premium</span></a></li>
+            <li><a href="#" class="api-call" data-api"sertifika" >Sertifika Sorgulama <span class="badge premium">Premium</span></a></li>
+          </ul>
+        </li>
+
+        <li>
+       <a href="#" class="menu-item" tabindex="0" aria-expanded="false" aria-controls="submenu-kisisunucubilgi-sistemi" id="btn-kisisunucubilgi-sistemi">
+            <i class="fas fa-star" aria-hidden="true"></i> Kişi Sunucu Bilgi Sistemi <span class="arrow">▶</span>
+          </a>
+          <ul class="submenu" id="submenu-kisisunucubilgi-sistemi" aria-labelledby="btn-kisisunucubilgi-sistemi">
+             <li><a href="#" class="api-call" data-api="vergi_levhasi"> VERGI LEVHASI SORGULAMA <span class="badge premium">PREMIUM</span></a></li>
+             <li><a href="#" class="api-call" data-api="facebook"> FACEBOOK SORGULAMA <span class="badge premium">PREMIUM</span></a></li>
+             <li><a href="#" class="api-call" data-api="diploma"> DIPLOMA SORGULAMA <span class="badge premium">PRMIUM</span></a></li>
+             <li><a href="#" class="api-call" data-api="internet"> INTERNET SORGU <span class="badge premium">PREMIUM</span></a></li>
+             <li><a href="#" class="api-call" data-api="interpol"> INTERPOL ARANANLAR SORGULAMA <span class="badge premium">PREMIUM</span></a></li>
+             <li><a href="#" class="api-call" data-api="sehit"> SEHIT SORGULAMA <span class="badge premium">PREMIUM</span></a></li>
+             <li><a href="#" class="api-call" data-api="sertifika"> SERTIFIKA SORGULAMA <span class="badge premium">PREMIUM</span></a></li>
+             <li><a href="#" class="api-call" data-api="lgs"> LGS 2 (FARKLU API) <span class="badge premium">PREMIUM</span></a></li>
+             <li><a href="#" class="api-call" data-api="email">EMAIL SORGU <span class="badge premium">PREMIUM</span></a></li>
+           </ul>
+         </li>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="menu-item" tabindex="0" aria-expanded="false" aria-controls="submenu-gsm" id="btn-gsm">
+            <i class="fas fa-sim-card" aria-hidden="true"></i> GSM Sunucu Bilgi Sistemleri <span class="arrow">▶</span>
+          </a>
+          <ul class="submenu" id="submenu-gsm" aria-labelledby="btn-gsm">
+            <li><a href="#" class="api-call" data-api="gsm_tc">GSM → TC <span class="badge year">210M</span></a></li>
+            <li><a href="#" class="api-call" data-api="tc_gsm">TC → GSM <span class="badge year">210M</span></a></li>
+            <li><a href="#" class="api-call" data-api=gsm_tc">GSM'den İsim <span class="badge vodafone">Vodafone</span></a></li>
+          </ul>
+        </li>
+        <li>
+           <a href="#" class="menu-item" tabindex="0" aria-expanded="false" aria-controls="submenu-GOST-SISTEM-SORGULARI" id="btn-GOST-SISTEM-SORGULARI">
+            <i class="fas fa-star" aria-hidden="true"></i> GOST SISTEM SORGULARI <span class="arrow">▶</span>
+          </a>
+          <ul class="submenu" id="submenu-GOST-SISTEM-SORGULARI" aria-labelledby="btn-GOST-SISTEM-SORGULARI">
+            <li><a href="#" class="api-call" data-api="vesika">VESIKA SORGU<span class="badge premium">PREMIUM</span></a></li>
+            <li><a href="#" class="api-call" data-api="lgs">LGS SORGU<span class="badge premium">PREMIUM</span></a></li>
+            <li><a href="#" class="api-call" data-api="baba">BABA SORGU<span class="badge premium">PREMIUM</span></a></li>
+            <li><a href="#" class="api-call" data-api="anne">ANNE SORGU<span class="badge premium">PREMIUM</span></a></li>
+            <li><a href="#" class="api-call" data-api="cocuk">COCUK SORGU<span class="badge premium">PREMIUM</span></a></li>
+          </ul>
+        </li>
+
+          </a>
+        </li>
+        <li>
+           <a href="#" class="menu-item" tabindex="0" aria-expanded="flase" aria-controls="submenu-nes" id="btn-nes">
+            <i class="fas fa-star" aria-hidden="true"></i> HARRAM SORGULAR<span class="arrow">▶</span>
+           </a>
+           <ul class="submenu" id="submenu-nes" aria-labelledby="btn-nes">
+            <li><a href="#" class="api-call" data-api="ehliyet">EHLIYET SORGU<span class="badge premium">PREMIUM</span></a></li>
+            <li><a href="#" class="api-call" data-api="muhalle">MUHALE SORGU<span class="badge premium">PREMIUM</span></a></li>
+            <li><a href="#" class="api-call" data-api="boy">BOY SORGU<span class="badge premium">PREMIUM</span></a></li>
+            <li><a href="#" class="api-call" data-api="ayak_no">AYAK NO SORGU<span class="badge premium">PREMIUM</span></a></li>
+            <li><a href="#" class="api-call" data-api="arac_borc">ARAC PARCA SORGU<span class="badge premium">PREMIUM</span></a></li>
+         </ul>
+       </li>
+         </a>
+        </li>
+        <li>
+           <a href="#" class="menu-item" tabindex="0" aria-expanded="false" aria-controls="submenu-new" id="btn-new">
+            <i class="fas fa-star" aria-hidden="true"></i> NEW SOGRULAR <span class="arrow">▶</span>
+          </a>
+           <ul class="submenu" id="submenu-new" aria-labelledby="btn-new">
+            <li><a href="#" class="api-call" data-api="ad_soyad_pro">Ad Soyad Pro <span class="badge premium">Premium</span></a></li>
+            <li><a href="#" class="api-call" data-api="es">Eş Sorgu <span class="badge premium">Premium</span></a></li>
+            <li><a href="#" class="api-call" data-api="hane">Hane Sorgu <span class="badge premium">Premium</span></a></li>
+            <li><a href="#" class="api-call" data-api="ada_parsel">Ada Parsel Sorgu <span class="badge premium">Premium</span></a></li>
+            <li><a href="#" class="api-call" data-api="leak">Leak Sorgulama <span class="badge premium">Premium</span></a></li>
+            <li><a href="#" class="api-call" data-api="prem_ad">Prem Ad Sorgulama <span class="badge premium">Premium</span></a></li>
+            <li><a href="#" class="api-call" data-api="prem_adres">Prem Adres Sorgu <span class="badge premium">Premium</span></a></li>
+            <li><a href="#" class="api-call" data-api="mhrs_randevu">MHRS RANDEVU SORGU <span class="badge premium">Premium</span></a></li>
+            <li><a href="#" class="api-call" data-api="sgk_pro">SGK PRO SORGULAMA <span class="badge premium">Premium</span></a></li>
+          </ul>
+           </a>
+          </li>
+        </li>
+      </ul>
+    </nav>
+  </aside>
+
+<script>
+// Senin orijinal api-call davranışını koruyorum ama role kontrolü ekliyorum.
+async function getRole() {
+  try {
+    const res = await fetch('/api/user', { credentials: 'include' });
+    if(res.ok){
+      const j = await res.json();
+      if(j.logged_in) {
+        // sync localStorage
+        localStorage.setItem('app_user', JSON.stringify({ role: j.role, username: j.username }));
+        return j.role;
+      }
+    }
+  } catch(e){}
+  // fallback
+  try { return JSON.parse(localStorage.getItem('app_user')||'{}').role || 'guest'; } catch(e){ return 'guest'; }
+}
+
+// Daha güvenli api tıklma handler: önce role kontrol et, sonra sorgu sayfasına git
+document.querySelectorAll('.api-call').forEach(link => {
+  link.addEventListener('click', async e => {
+    e.preventDefault();
+    const apiName = link.getAttribute('data-api');
+    const role = await getRole();
+    const PREMIUM_NAMES = new Set(['e_kurs','prem_ad','prem_adres','sgk_pro','vergi_levhasi','facebook','diploma','internet','personel','interpol','sehit','arac_parca','arac_borc','lgs_2','vesika','ehliyet','mhrs_randevu']);
+    if(PREMIUM_NAMES.has(apiName) && (role === 'free' || role === 'guest')){
+      // free/guest kullanıcı premium'e basarsa aboneliğe gönder
+      window.location.href = 'abonelik.html';
+      return;
+    }
+    // değilse orijinal davranış: sorgu.html?api=...
+    window.location.href = `sorgu.html?api=${encodeURIComponent(apiName)}`;
+  });
+});
+
+
+  // Menü açma ve kapama fonksiyonu
+  function toggleMenu() {
+    const sidebar = document.getElementById('sidebar');
+    sidebar.classList.toggle('active');
+  }
+
+  // Menü Kapat butonu
+  document.getElementById('menu-close-btn').addEventListener('click', function(e){
+    e.preventDefault();
+    document.getElementById('sidebar').classList.remove('active');
+  });
+
+  // Dropdown toggle for submenu
+  document.querySelectorAll('.menu-item[aria-controls]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.preventDefault();
+      const submenuId = btn.getAttribute('aria-controls');
+      const submenu = document.getElementById(submenuId);
+      const isOpen = submenu.classList.contains('open');
+
+      // Close all open submenus
+      document.querySelectorAll('.submenu.open').forEach(openMenu => {
+        openMenu.classList.remove('open');
+        const parentBtn = document.querySelector(`[aria-controls="${openMenu.id}"]`);
+        if (parentBtn) {
+          parentBtn.setAttribute('aria-expanded', 'false');
+          parentBtn.classList.remove('expanded');
+        }
+      });
+
+      // If it was closed, open it
+      if (!isOpen) {
+        submenu.classList.add('open');
+        btn.setAttribute('aria-expanded', 'true');
+        btn.classList.add('expanded');
+      }
+    });
+  });
+</script>
+
+<!-- ======= EKLENTİLER (Aşağıyı silme / mevcut dosyanın sonuna ekle) ======= -->
+<style>
+  /* Hafif yüzen blob'lar (arka planı canlandırır) */
+  .__vip_blob { position: fixed; border-radius: 50%; opacity: 0.09; filter: blur(18px); z-index: -1; pointer-events: none; }
+  .__vip_blob.a { width:480px; height:480px; left:-140px; top:-100px; background:linear-gradient(90deg,#00e6ff,#08f); animation:__vip_floatA 18s ease-in-out infinite; }
+  .__vip_blob.b { width:320px; height:320px; right:-120px; bottom:-120px; background:linear-gradient(90deg,#fdc018,#f97316); animation:__vip_floatB 20s ease-in-out infinite; }
+  @keyframes __vip_floatA { 0%{transform:translate(0,0)}50%{transform:translate(18px,26px)}100%{transform:translate(0,0)} }
+  @keyframes __vip_floatB { 0%{transform:translate(0,0)}50%{transform:translate(-18px,-26px)}100%{transform:translate(0,0)} }
+
+  /* Info kartları - sayfanın sağ üstüne absolute konumlu */
+  #__vip_info_wrap { position: fixed; top: 84px; right: 22px; display: flex; gap: 10px; z-index: 900; pointer-events: auto; transform-origin: top right; }
+  #__vip_info_wrap .__vip_card { min-width: 140px; padding: 10px 12px; border-radius: 10px; background: rgba(6,8,12,0.56); border: 1px solid rgba(0,0,0,0.2); color: #dbe9ef; box-shadow: 0 8px 20px rgba(2,6,23,0.45); font-family: inherit; }
+  #__vip_info_wrap .__vip_card .t { font-size:11px; color:#9fb0bf; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; }
+  #__vip_info_wrap .__vip_card .v { font-size:20px; font-weight:900; margin-top:6px; color:#fff; }
+  @media (max-width:900px){ #__vip_info_wrap { display:none; } }
+
+  .__vip_greet_animated { display:inline-block; opacity:0; transform: translateY(6px); transition: transform .45s ease, opacity .45s ease; }
+  .__vip_greet_animated.__show { opacity:1; transform: translateY(0); }
+
+  #__vip_block_toast { position: fixed; right: 18px; bottom: 18px; background: linear-gradient(90deg,#ffb4b4,#ffd18b); color:#2b0505; padding:10px 14px; border-radius:10px; box-shadow:0 12px 30px rgba(0,0,0,0.5); display:none; z-index:1200; font-weight:700; }
+</style>
+
+<div class="__vip_blob a" aria-hidden="true"></div>
+<div class="__vip_blob b" aria-hidden="true"></div>
+
+<div id="__vip_info_wrap" aria-hidden="false" role="status" aria-live="polite">
+  <div class="__vip_card" id="__vip_card_queries">
+    <div class="t">Toplam Sorgular</div>
+    <div class="v" data-target="1234567" id="__vip_val_queries">0</div>
+  </div>
+  <div class="__vip_card" id="__vip_card_active">
+    <div class="t">Aktif Kullanıcı</div>
+    <div class="v" data-target="312" id="__vip_val_active">0</div>
+  </div>
+  <div class="__vip_card" id="__vip_card_prem">
+    <div class="t">Premium Üyeler</div>
+    <div class="v" data-target="42" id="__vip_val_prem">0</div>
+  </div>
+</div>
+
+<div id="__vip_block_toast">Geliştirici araçları engellendi.</div>
+
+<script>
+/* Hoşgeldin animasyonu + günün saatine göre mesaj (gün numarası ve saat + selamlama gösterilir) */
+(function(){
+  try {
+    const welcomeEl = document.getElementById('__vip_welcome');
+    const subEl = document.getElementById('__vip_submsg');
+    if(!welcomeEl || !subEl) return;
+
+    // Mevcut metni senin istediğin üç satır olarak bıraktım (HTML içinde de var).
+    // Şimdi alt satırı gün/saat/selamlama gösterecek şekilde güncelleyeceğiz.
+    function pad(n){ return n<10? '0'+n : ''+n; }
+    function updateGreeting(){
+      const now = new Date();
+      const h = now.getHours();
+      const m = now.getMinutes();
+      // ISO tarzı: Pazartesi=1 ... Pazar=7
+      let dayIso = now.getDay(); // 0 (Pazar) .. 6 (Cumartesi)
+      dayIso = dayIso === 0 ? 7 : dayIso; // Sunday -> 7
+      let greet = 'Merhaba';
+      if(h>=5 && h<12) greet = 'Günaydın';
+      else if(h>=12 && h<17) greet = 'İyi Günler';
+      else if(h>=17 && h<22) greet = 'İyi Akşamlar';
+      else greet = 'İyi Geceler';
+      const sub = `${greet} — Haftanın ${dayIso}. günü — ${pad(h)}:${pad(m)}`;
+      subEl.textContent = sub;
+    }
+    updateGreeting();
+    setInterval(updateGreeting, 30*1000);
+  } catch(e){ console.warn('greet err', e); }
+})();
+
+/* Sayaç animasyonu */
+(function(){
+  function animateCounter(el, duration){
+    const target = Number(el.getAttribute('data-target') || 0);
+    if(isNaN(target)) return;
+    const startTime = performance.now();
+    function step(now){
+      const t = Math.min((now - startTime)/duration, 1);
+      const val = Math.floor(t * target);
+      el.textContent = val.toLocaleString('tr-TR');
+      if(t < 1) requestAnimationFrame(step);
+      else el.textContent = target.toLocaleString('tr-TR');
+    }
+    requestAnimationFrame(step);
+  }
+  window.addEventListener('load', function(){
+    const q = document.getElementById('__vip_val_queries');
+    const a = document.getElementById('__vip_val_active');
+    const p = document.getElementById('__vip_val_prem');
+    if(q) animateCounter(q, 1400);
+    if(a) animateCounter(a, 1100);
+    if(p) animateCounter(p, 1000);
+  });
+})();
+
+/* Basit F12 / Sağ-tık / Ctrl+U engellemesi (uyarı amaçlı) */
+(function(){
+  const toast = document.getElementById('__vip_block_toast');
+  function showBlocked(msg){ if(!toast) return; toast.textContent = msg || 'Bu işlem engellendi.'; toast.style.display = 'block'; setTimeout(()=>{ toast.style.display = 'none'; }, 2000); }
+  window.addEventListener('contextmenu', function(e){ e.preventDefault(); showBlocked('Sağ tık engellendi.'); }, false);
+  window.addEventListener('keydown', function(e){
+    if(e.keyCode === 123){ e.preventDefault(); showBlocked('DevTools engellendi.'); return false; }
+    if((e.ctrlKey || e.metaKey) && e.key && e.key.toLowerCase() === 'u'){ e.preventDefault(); showBlocked('Kaynak görüntüleme engellendi.'); return false; }
+    if(e.ctrlKey && e.shiftKey && e.key && e.key.toLowerCase()==='i'){ e.preventDefault(); showBlocked('DevTools engellendi.'); return false; }
+  }, false);
+  let devOpen = false;
+  setInterval(()=> {
+    try {
+      const w = window.outerWidth - window.innerWidth;
+      const h = window.outerHeight - window.innerHeight;
+      if(w > 160 || h > 160){ if(!devOpen){ devOpen = true; showBlocked('Geliştirici araçları algılandı.'); } }
+      else { devOpen = false; }
+    } catch(e){}
+  }, 1000);
+})();
+
+/* Menü VIP/FREE ayrımı: localStorage & backend sync */
+(function(){
+  async function syncAuth(){
+    try{
+      const res = await fetch('/api/user', { credentials: 'include' });
+      const j = await res.json();
+      if(j.logged_in){
+        localStorage.setItem('app_user', JSON.stringify({ role: j.role, username: j.username }));
+      } else {
+        localStorage.setItem('app_user', JSON.stringify({ role: 'guest' }));
+      }
+    }catch(e){ /* ignore */ }
+    applyUserUI();
+  }
+
+  function getUserLocal(){ try{ return JSON.parse(localStorage.getItem('app_user')||'{}'); }catch(e){ return {role:'guest'};} }
+
+  function applyUserUI(){
+    const user = getUserLocal();
+    const usernameEls = document.querySelectorAll('.username');
+    usernameEls.forEach(el => { if(user && user.username) el.textContent = user.username; });
+    const membership = document.querySelector('#user-panel .membership');
+    if(membership){ membership.textContent = user.role === 'vip' ? '♡ VIP Üyelik' : (user.role === 'free' ? '♡ Ücretsiz Üyelik' : 'Giriş Yapın'); }
+
+    // görsel kısıtlama
+    const premiumBadges = document.querySelectorAll('.badge.premium');
+    premiumBadges.forEach(b=>{
+      const parentA = b.closest('a') || b.closest('li') || b.parentElement;
+      if(!parentA) return;
+      if(user.role === 'free' || user.role === 'guest') parentA.classList.add('menu-locked'); else parentA.classList.remove('menu-locked');
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    syncAuth();
+    // menu close already wired above
+  });
+})();
+</script>
+
+<!-- EK SONU -->
+</body>
+  </html>
